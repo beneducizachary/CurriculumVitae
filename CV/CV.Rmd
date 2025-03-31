@@ -50,7 +50,7 @@ library(rcrossref)
 ```{r education}
 edu <- orcid_educations("0009-0001-9575-001X")$`0009-0001-9575-001X`$`affiliation-group`$summaries %>% 
   reduce(full_join) %>%
-  mutate(GPA = c("GPA: 4.0", "GPA: 3.75"),
+  mutate(GPA = c("4.0 GPA", "3.75 GPA"),
          country = "USA")
 edu %>%
   detailed_entries(
@@ -67,7 +67,7 @@ manual <- read.csv("manualdata.csv")
 manual %>%
   filter(Category == "employment") %>%
   detailed_entries(what = glue("{employer}, {city}, {state}, {country}"),
-                   where = glue("{startyear} - {endyear}"),
+                   where = date,
                    with = title,
                    why = description,
                    .protect = FALSE)
@@ -125,7 +125,7 @@ bibliography_entries("outfile.bib") %>%
 ```{r}
 # Need to format these as type "book' in Zotero.
 bibliography_entries("Presentations.bib") %>%
-  #arrange(-desc(author$family), issued) %>%
+  arrange(desc(issued), author$family) %>%
   dplyr::mutate(
     author = {
       author_to_edit <- author
@@ -146,9 +146,9 @@ bibliography_entries("Presentations.bib") %>%
 ```{r}
 manual %>%
   filter(Category == "award") %>%
-  arrange(desc(years)) %>%
+  arrange(desc(date)) %>%
   detailed_entries(with = title,
-                   where = years,
+                   where = date,
                    what = employer,
                    #when = 
                    why = description,
@@ -162,12 +162,63 @@ manual %>%
 manual %>%
   filter(Category == "TA") %>%
   brief_entries(what = title,
-                when = years,
+                when = date,
                 with = description)
 ```
 
 # Outreach
-## Talks
-## Tabled Events
-## Articles
 
+## 2025
+
+```{r}
+manual %>%
+  filter(Category == "extension",
+         startyear == 2025) %>%
+  arrange(Category2) %>%
+  brief_entries(what = glue("({Category2}). {title}"),
+                #when = startyear,
+                with = glue("{event}, {city}, {state}, {country}."))
+```
+
+## 2024
+
+```{r}
+manual %>%
+  filter(Category == "extension",
+         startyear == 2024) %>%
+  arrange(Category2) %>%
+  brief_entries(what = glue("({Category2}). {title}"),
+                #when = startyear,
+                with = glue("{event}, {city}, {state}, {country}."),
+                .protect = F)
+```
+
+## 2023
+
+```{r}
+manual %>%
+  filter(Category == "extension",
+         startyear == 2023) %>%
+  arrange(Category2) %>%
+  brief_entries(what = glue("({Category2}). {title}"),
+                #when = startyear,
+                with = glue("{event}, {city}, {state}, {country}."),
+                .protect = F)
+```
+
+## 2022
+
+```{r}
+manual %>%
+  filter(Category == "extension",
+         startyear == 2022) %>%
+  arrange(Category2) %>%
+  brief_entries(what = glue("({Category2}). {title}"),
+                #when = startyear,
+                with = glue("{event}, {city}, {state}, {country}."),
+                .protect = F)
+```
+
+# Software Skills
+
+ArcGIS Pro, Microsoft Office Suite, R statistical environment
