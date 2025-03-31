@@ -16,13 +16,25 @@ header-includes:
   - \SearchList{mbold}{\textbf{Beneduci}}{BeneduciBold}
   - \usepackage{enumitem}
   - \setlist[itemize,1]{label={}}
+  - \usepackage{fancyhdr}
+  - \fancyfoot[L]{\textcolor{gray}{\textit{Updated \today}}}
+  - \pagestyle{fancy}
 output: 
   vitae::moderncv:
     theme: banking
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+```{r include=FALSE}
+# Packages
+
 library(vitae)
 library(rorcid)
 library(bibtex)
@@ -38,36 +50,34 @@ library(rcrossref)
 ```{r education}
 edu <- orcid_educations("0009-0001-9575-001X")$`0009-0001-9575-001X`$`affiliation-group`$summaries %>% 
   reduce(full_join) %>%
-  mutate(GPA = c("GPA: 4.0", "GPA: 3.75"))
+  mutate(GPA = c("GPA: 4.0", "GPA: 3.75"),
+         country = "USA")
 edu %>%
   detailed_entries(
-    what = glue("{`education-summary.role-title`}; {GPA}"),
-    when = glue("{`education-summary.start-date.year.value`} - {`education-summary.end-date.year.value`}"),
-    with = `education-summary.organization.name`,
-    where = glue("{`education-summary.organization.address.city`}, {`education-summary.organization.address.region`}, {`education-summary.organization.address.country`}")
-  )
+    with = glue("{`education-summary.role-title`}; {GPA}"),
+    where = glue("{`education-summary.start-date.year.value`} - {`education-summary.end-date.year.value`}"),
+    what = glue("{`education-summary.organization.name`}, {`education-summary.organization.address.city`}, {`education-summary.organization.address.region`}, {country}"))
 ```
 
 # Employment
 
 ```{r employment}
-emp <- read.csv("manualdata.csv")
+manual <- read.csv("manualdata.csv")
 
-emp %>%
+manual %>%
   filter(Category == "employment") %>%
-  detailed_entries(what = employer,
-                   when = glue("{startyear} - {endyear}"),
+  detailed_entries(what = glue("{employer}, {city}, {state}, {country}"),
+                   where = glue("{startyear} - {endyear}"),
                    with = title,
-                   where = glue("{city}, {state}, {country}"),
                    why = description,
                    .protect = FALSE)
 ```
 
-
 # Publications
 
 ```{r publications}
-DOI <- rorcid::orcid_citations("0009-0001-9575-001X")$ids
+DOI <- rorcid::orcid_citations("0009-0001-9575-001X")$ids %>%
+  na.omit()
 
 ## ... or else
 
@@ -113,18 +123,51 @@ bibliography_entries("outfile.bib") %>%
 # Presentations
 
 ```{r}
+# Need to format these as type "book' in Zotero.
 bibliography_entries("Presentations.bib") %>%
-  arrange(desc(author$family), issued)
+  #arrange(-desc(author$family), issued) %>%
+  dplyr::mutate(
+    author = {
+      author_to_edit <- author
+      for (j in seq_along(author_to_edit)) {
+        for (i in seq_along(author_to_edit[[j]])) {
+          if (author_to_edit[[j]][[i]]$family == "Beneduci") {
+            author_to_edit[[j]][[i]]$family <- "BeneduciBold"
+          }
+        }
+      }
+      author_to_edit
+    }
+  )
 ```
 
 # Awards
 
 ```{r}
-emp %>%
+manual %>%
   filter(Category == "award") %>%
+  arrange(desc(years)) %>%
+  detailed_entries(with = title,
+                   where = years,
+                   what = employer,
+                   #when = 
+                   why = description,
+                   .protect = TRUE)
+```
+
+# Teaching
+## Teaching Assitantships
+
+```{r}
+manual %>%
+  filter(Category == "TA") %>%
   brief_entries(what = title,
                 when = years,
-                with = description,
-                .protect = TRUE)
+                with = description)
 ```
+
+# Outreach
+## Talks
+## Tabled Events
+## Articles
 
