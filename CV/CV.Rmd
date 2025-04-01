@@ -213,14 +213,16 @@ manual %>%
 ## Non-refereed papers and blogs
 ```{r}
 bibliography_entries("CV.bib") %>%
-  filter(note == "article")
+  filter(note == "article") %>%
+  arrange(desc(issued))
 ```
 
 ## Talks
 
 ```{r}
 bibliography_entries("CV.bib") %>%
-  filter(note == "talk")
+  filter(note == "talk") %>%
+  arrange(desc(issued))
 ```
 
 ## Other
