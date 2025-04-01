@@ -11,6 +11,7 @@ github: beneducizachary
 #linkedin: 
 date: "`r format(Sys.time(), '%B %Y')`"
 headcolor: 414141
+author: \textbf{Beneduci, Z. J.}
 header-includes:
   - \usepackage{xesearch}
   - \SearchList{mbold}{\textbf{Beneduci}}{BeneduciBold}
@@ -50,12 +51,25 @@ library(rcrossref)
 ```{r education}
 edu <- orcid_educations("0009-0001-9575-001X")$`0009-0001-9575-001X`$`affiliation-group`$summaries %>% 
   reduce(full_join) %>%
+  as.data.frame() %>%
   mutate(GPA = c("4.0 GPA", "3.75 GPA"),
-         country = "USA")
+         country = "USA",
+         startyear = `education-summary.start-date.year.value`,
+         startmonth = `education-summary.start-date.month.value`,
+         startday = `education-summary.start-date.day.value`,
+         endyear = `education-summary.end-date.year.value`,
+         endmonth = `education-summary.end-date.month.value`,
+         endday = `education-summary.end-date.day.value`,
+         startdate = paste(startyear, startmonth, startday, sep = "-"),
+         enddate = paste(endyear, endmonth, endday, sep = "-")) %>%
+  mutate(startdate = ymd(startdate),
+         enddate = ymd(enddate)) %>%
+  mutate(startmonth = month(startdate, label = T),
+         endmonth = month(enddate, label = T))
 edu %>%
   detailed_entries(
     with = glue("{`education-summary.role-title`}; {GPA}"),
-    where = glue("{`education-summary.start-date.year.value`} - {`education-summary.end-date.year.value`}"),
+    where = glue("{startmonth} {startyear} - {endmonth} {endyear}"),
     what = glue("{`education-summary.organization.name`}, {`education-summary.organization.address.city`}, {`education-summary.organization.address.region`}, {country}"))
 ```
 
@@ -73,13 +87,15 @@ manual %>%
                    .protect = FALSE)
 ```
 
-# Publications
-
-```{r publications}
+```{r include=FALSE}
+# Put here to count the publication number
 DOI <- rorcid::orcid_citations("0009-0001-9575-001X")$ids %>%
   na.omit()
+```
 
-## ... or else
+# Publications (`r summary(DOI)[1]`)
+
+```{r publications}
 
 ## 2. Give a name for the output file:
 OUTFILE <- "outfile.bib"
@@ -120,11 +136,11 @@ bibliography_entries("outfile.bib") %>%
 
 ```
 
-# Presentations
-
-```{r}
+```{r include=FALSE}
+# Add this first so we can get the presentation count
 # Need to format these as type "book' in Zotero.
-bibliography_entries("Presentations.bib") %>%
+pres.bib <- bibliography_entries("CV.bib") %>%
+  filter(note == "presentation") %>%
   arrange(desc(issued), author$family) %>%
   dplyr::mutate(
     author = {
@@ -139,6 +155,32 @@ bibliography_entries("Presentations.bib") %>%
       author_to_edit
     }
   )
+```
+
+# Presentations (`r nrow(pres.bib)`)
+
+```{r}
+pres.bib1 <- pres.bib %>%
+  filter(str_starts(id, "beneduci"))
+```
+
+## Presenter (`r nrow(pres.bib1)`)
+
+```{r}
+# Call the previous object
+pres.bib1
+```
+
+```{r include=FALSE}
+# Create the co-author object to count
+pres.bib2 <- pres.bib %>%
+  filter(!str_starts(id, "beneduci"))
+```
+
+## Co-author (`r nrow(pres.bib2)`)
+
+```{r}
+pres.bib2
 ```
 
 # Awards
@@ -168,55 +210,27 @@ manual %>%
 
 # Outreach
 
-## 2025
-
+## Non-refereed papers and blogs
 ```{r}
-manual %>%
-  filter(Category == "extension",
-         startyear == 2025) %>%
-  arrange(Category2) %>%
-  brief_entries(what = glue("({Category2}). {title}"),
-                #when = startyear,
-                with = glue("{event}, {city}, {state}, {country}."))
+bibliography_entries("CV.bib") %>%
+  filter(note == "article")
 ```
 
-## 2024
+## Talks
 
 ```{r}
-manual %>%
-  filter(Category == "extension",
-         startyear == 2024) %>%
-  arrange(Category2) %>%
-  brief_entries(what = glue("({Category2}). {title}"),
-                #when = startyear,
-                with = glue("{event}, {city}, {state}, {country}."),
-                .protect = F)
+bibliography_entries("CV.bib") %>%
+  filter(note == "talk")
 ```
 
-## 2023
+## Other
 
 ```{r}
-manual %>%
-  filter(Category == "extension",
-         startyear == 2023) %>%
-  arrange(Category2) %>%
-  brief_entries(what = glue("({Category2}). {title}"),
-                #when = startyear,
-                with = glue("{event}, {city}, {state}, {country}."),
-                .protect = F)
-```
-
-## 2022
-
-```{r}
-manual %>%
-  filter(Category == "extension",
-         startyear == 2022) %>%
-  arrange(Category2) %>%
-  brief_entries(what = glue("({Category2}). {title}"),
-                #when = startyear,
-                with = glue("{event}, {city}, {state}, {country}."),
-                .protect = F)
+bibliography_entries("CV.bib") %>%
+  filter(!note == "article",
+         !note == "talk",
+         !note == "presentation") %>%
+  arrange(desc(note), desc(issued))
 ```
 
 # Software Skills
