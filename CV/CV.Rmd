@@ -13,13 +13,28 @@ date: "`r format(Sys.time(), '%B %Y')`"
 headcolor: 414141
 author: \textbf{Beneduci, Z. J.}
 header-includes:
-  - \usepackage{xesearch}
-  - \SearchList{mbold}{\textbf{Beneduci}}{BeneduciBold}
-  - \usepackage{enumitem}
-  - \setlist[itemize,1]{label={}}
-  - \usepackage{fancyhdr}
-  - \fancyfoot[L]{\textcolor{gray}{\textit{Updated \today}}}
-  - \pagestyle{fancy}
+  - |
+    \usepackage{xesearch}
+    \SearchList{mbold}{\textbf{Beneduci}}{BeneduciBold}
+    \usepackage{enumitem}
+    \setlist[itemize,1]{label={}}
+    \usepackage{fancyhdr}
+    \usepackage{eso-pic}  % allows overlaying elements on a page
+
+    % Keep your usual fancy layout for all pages
+    \pagestyle{fancy}
+    \fancyhf{} % no footer on normal pages
+
+    % Add "Updated \today" footer on the last page only
+    \AtEndDocument{%
+      \AddToShipoutPictureBG*{%
+        \AtPageLowerLeft{%
+          \raisebox{64pt}[0pt][0pt]{%
+            \makebox[\paperwidth][c]{\textcolor{gray}{\textit{Updated \today}}}%
+          }%
+        }%
+      }%
+    }
 output: 
   vitae::moderncv:
     theme: banking
@@ -216,6 +231,14 @@ manual %>%
   brief_entries(what = title,
                 when = date,
                 with = description)
+```
+
+# Peer Review Service
+```{r}
+manual %>%
+  filter(Category == "reviewer") %>%
+  brief_entries(what = title,
+                .protect = FALSE)
 ```
 
 # Outreach
